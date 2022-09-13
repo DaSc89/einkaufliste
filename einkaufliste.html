@@ -1,0 +1,231 @@
+<!--
+Einkaufliste:
+version: 2.0
+HTML5 und Javacript basierte einkaufliste
+- Seperate mengen für 2 Personen
+- Liste wird Lokale im Browser gespeichert
+- Eine Edit und Shopping Ansicht
+-->
+<!--
+todo:
+  - layout für Desktop anpassen
+  - menu für Tabelle
+-->
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="einkaufliste.js"></script>
+    <link rel="stylesheet" href="einkaufliste.css">
+    <script type="text/javascript">
+      var divETable,
+          divSTable,
+          divShopButtons,
+          spanShop,
+          labelShow,
+          outp,
+          menue,
+          sl,
+          shop,
+          shopButtons = new Map();
+      //function for the '+' button in rows
+      ShopTablesRow.btnNewRow = function (id){
+        if (shop){
+          shop.insertRow(id);
+        }
+      };
+
+      //function for the '-' button in rows
+      ShopTablesRow.btnDelRow = function (id){
+        if (shop){
+          let text = shop.getRows(id)[0].inputText.value;
+          if(text && !text == "" && !confirm("möchten sie "+text+" Löschen?")){
+              return;
+          }
+          shop.removeRow(id);
+        }
+      };
+
+      //function for the checkbox change event
+      ShopTablesRow.chkBoxChanged = function (id, chkBox){
+        var tName = chkBox.parentElement.parentElement.parentElement.parentElement.dataset.name;
+        if (tName === shop.name)
+          shop.setCheckBox(id, chkBox.checked);
+        else{
+          let tmpShop = sl.getShop(tName);
+          tmpShop.setCheckBox(id, chkBox.checked);
+        }
+      }
+
+      window.onload = function(){
+        //init variablen
+        divETable = document.getElementById('eTable');
+        divSTable = document.getElementById('sTable');
+        divShopButtons = document.getElementById('ShopButtons');
+        spanShop = document.getElementById('shopSpan');
+        labelShow = document.getElementById('btnShow');
+        outp = document.getElementById('outp');
+        menu = document.getElementById('menue')
+        sl = new ShoppingLists();
+
+
+        //load save datete from LocalStorage
+        sl.loadFromLocalStorage();
+        if(sl.tableList.size != 0){
+          for(let [name, shop] of sl.tableList){
+            createShopButton(name);
+          }
+          showShop(sl.getShop().name);
+        }
+      }
+
+      function createShopButton(name){
+        let div = document.createElement("div");
+        let inp = document.createElement("input");
+        let array = [];
+        inp.type = "button";
+        inp.value = name;
+        inp.setAttribute("onclick", "showShop('"+name+"')");
+        inp.setAttribute("class", "textSize");
+        div.appendChild(inp);
+        array.push(inp);
+        inp = document.createElement('input');
+        inp.type = "checkbox";
+        inp.setAttribute("onclick", "selectShop('"+name+"')");
+        inp.setAttribute("class", "switchOn");
+        div.appendChild(inp);
+        divShopButtons.appendChild(div);
+        array.push(inp);
+        array.push(div);
+        shopButtons.set(name, array);
+      }
+
+      function showShop(name){
+        shop = sl.getShop(name);
+        spanShop.innerHTML = name;
+        divETable.innerHTML = "";
+        divSTable.innerHTML = "";
+        divETable.appendChild(shop.eTable);
+        divSTable.appendChild(shop.sTable);
+        outp.innerHTML = "";
+      }
+
+      function selectShop(name){
+        let tmpShop;
+        if(!name || name === "") tmpShop = shop;
+        else tmpShop = sl.getShop(name);
+        if (shopButtons.get(tmpShop.name)[1].checked){
+          divETable.appendChild(tmpShop.eTable);
+          divSTable.appendChild(tmpShop.sTable);
+        }else{
+          divETable.removeChild(tmpShop.eTable);
+          divSTable.removeChild(tmpShop.sTable);
+        }
+      }
+
+      function newShop(){
+        let name = document.getElementById('ShopName').value;
+        if(name && name !== ""){
+          let tryShop = sl.newShop(name);
+          if (tryShop){
+            createShopButton(name);
+            showShop(name);
+            document.getElementById('ShopName').value = "";
+          }else alert ("Name ist schon vergeben! \nBitte einen anderen Namen eingeben.");
+        }else alert("Bitte einen Namen eingeben.")
+      }
+
+      function switchShopping(chkBox){
+        sl.setRowVisibility(chkBox.checked);
+        if(!chkBox.checked){
+          showShop(shop.name);
+        }
+
+        for(let button of shopButtons.values()){
+          button[0].disabled = chkBox.checked;
+          button[1].checked = false;
+        }
+        labelShow.innerHTML = chkBox.checked ? "Edit":"Shopping";
+        shopButtons.get(shop.name)[1].checked = true;
+        outp.innerHTML = "";
+      }
+
+      function saveTable(){
+        let str = sl.saveToLocalStorage(shop.name);
+        outp.innerHTML = "<b>Gespeichert:</b> <br>" + str.replace(/;/g, "<br>");
+      }
+
+      function deleteRows(){
+        if(confirm("möchten sie alle einträge von "+shop.name+" Löschen?"))
+          shop.removeAllRows();
+      }
+
+      function deleteShop(){
+        if(confirm("möchten sie "+shop.name+" Löschen?")){
+          let btnChk = shopButtons.get(shop.name);
+          divShopButtons.removeChild(btnChk[2]);
+          shopButtons.delete(shop.name);
+          sl.remove(shop.name);
+          let newShop =  sl.getShop();
+          if(newShop){
+            showShop(newShop.name);
+            shop = newShop;
+          }
+        }
+      }
+
+      function renameTable(){
+        let newName = prompt("Neuer Name?")
+        if(newName){
+          let name = shop.name;
+          if (sl.rename(name, newName)){
+            let btnChk = shopButtons.get(name);
+            btnChk[0].value = newName;
+            btnChk[0].setAttribute("onclick", "showShop('"+newName+"')");
+            btnChk[1].setAttribute("onclick", "selectShop('"+name+"')");
+            shopButtons.set(newName, btnChk)
+                       .delete(name);
+            showShop(newName);
+          }else{
+            alert(newName +" wird bereits verwendet oder ist ungültig");
+          }
+        }
+      }
+
+    </script>
+  </head>
+  <body>
+    <input id="chkShow" type="checkbox" style="display: none" onchange="switchShopping(this)" />
+    <div id="mainDiv">
+      <div id="ShopList" class="shops">
+        <div id="ShopButtons"> </div>
+        <div class="switchOff">
+          <input type="text" id="ShopName" class="textSize" name="ShopName" placeholder="Shop Name" size="8" value="">
+          <button type="button" id="newShop" class="textSize" name="newShop" onclick="newShop()">+</button>
+        </div>
+        <span class="fillSpann"></span>
+        <div class="dropdownIcon switchOff textSizeLarge">
+          &#10247
+          <div id="menue" class="dropdownMenue" >
+            <button type="button" class="textSize" name="btnReset" onclick="shop.clearAllPieces()">Reset Pieces</button>
+            <button type="button" class="textSize" name="btnRename" onclick="renameTable()">Rename</button>
+            <button type="button" class="textSize" name="btnDeleteRows" onclick="deleteRows()"> Delete Rows</button>
+            <button type="button" class="textSize" name="btnDeleteTable" onclick="deleteShop()">Delete Table</button>
+          </div>
+        </div>
+      </div>
+      <h1 class="textSizeLarge">Einkaufsliste <span id="shopSpan"></span>:</h1>
+      <div id="eTable"></div>
+
+      <label id="labGekauft" class="switchOn textSize"><h1>Gekauft:</h1></label>
+      <div id="sTable" class="switchOn"></div>
+      <p class="textSize" id="outp"></p>
+    </div>
+    <div id="overlay">
+      <input id="btnSave" class="textSize switchVisibility" type="button" value="save" onclick="saveTable()"/>
+      <label id="btnShow" class="textSize" for="chkShow">Shoppen</label>
+      <input id="btnGoUp" class="textSize" type="button" value="^" onclick="window.location.href='./einkaufliste.html#mainDiv'">
+    </div>
+  </body>
+</html>

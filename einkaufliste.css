@@ -1,0 +1,114 @@
+h1{
+  text-align:	center;
+  margin: 5px; }
+ table{
+   width: 90%;
+   margin:auto; }
+ .textSize{
+   font-size: 4.5vw; }
+ .textSizeLarge{
+   font-size: 5.5vw; }
+.switchOff{
+  display: unset; }
+input[id="chkShow"]:checked + div .switchOff{
+  display: none; }
+
+.switchOn{
+  display: none; }
+input[id="chkShow"]:checked + div .switchOn{
+  display: block;
+  margin: auto; }
+
+.switchVisibility{
+  visibility: visible;}
+input[id="chkShow"]:checked + div .switchVisibility{
+  visibility: hidden; }
+
+input[type=checkbox]{
+  margin: 6px;
+  width: 5vw;
+  height: 5vw;}
+
+#eTable{
+  margin-bottom: 70px; }
+#btnShow{
+  background-color:	#ACA; }
+#overlay{
+  position: fixed;
+  top:inherit;
+  bottom: 3px;
+  left: 5px;
+  right: 5px;
+  background: #aaa;
+  display: flex;
+  justify-content: space-between;}
+#btnGoUp{
+  width: 50px; }
+#mainDiv{
+  margin: 10px;
+  margin-bottom: 30px;
+  margin-right: 30px;}
+#ShopList{
+  display: inline-flex;
+  align-items: start;
+  flex-wrap: wrap; }
+#ShopButtons{
+  display: flex;
+  flex-wrap: wrap; }
+.listen.th{
+  background-color:	#1E90FF; }
+.gridItemTA{
+  grid-column: 1 / 7; }
+.cellDisplay{
+  display: grid; }
+.shops{
+  display: inline-flex;
+  width: 100%; }
+.dropdownIcon{
+  display: inline-block;
+  position: relative;
+  padding: 0 10px; }
+.dropdownMenue{
+  display: none;
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  background-color: #bbb;
+  padding: 3px;
+  width: max-content;
+  flex-direction: column; }
+.dropdownIcon:hover .dropdownMenue{
+  display: flex; }
+.fillSpann{
+  flex-grow: 2; }
+tr:nth-child(even){
+  background-color: #bbb }
+tr:nth-child(odd){
+  background-color: #ddd }
+@media (min-width: 1024px){
+  #mainDiv{
+    margin-bottom: 35px;
+    width: 50%;
+    margin: auto; }
+  #overlay{
+    width: 50%;
+    margin: auto;
+    bottom: 5px; }
+  .textSize{
+    font-size: medium; }
+  .textSizeLarge{
+    font-size: x-large; }
+  .cellDisplay{
+    display: flex; }
+  .shops{
+    display: inline-flex; }
+  .gridItemTA{
+    flex-grow: 2; }
+  .hideMe{
+    display: none; }
+  input[type=checkbox]{
+    width: 2vw;
+    height: 2vw;}
+  input{
+    margin: auto; }
+}
